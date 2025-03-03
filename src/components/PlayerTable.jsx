@@ -16,7 +16,6 @@ const PlayerTable = ({ players, onSortChange }) => {
     return 0;
   });
 
-  // Notify parent of the sorted players
   const handleSort = (key) => {
     setSortConfig((prev) => {
       const newConfig =

@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import axios from "axios";
 import PlayerTable from "./PlayerTable";
 import MatchEntry from "./MatchEntry";
 import PlayerChart from "./PlayerChart";
 import MatchHistory from "./MatchHistory";
 import TeamBalancer from "./TeamBalancer";
+
+const API_URL = "http://localhost:5000";
 
 const App = () => {
   const [players, setPlayers] = useState([]);
@@ -11,124 +14,113 @@ const App = () => {
   const [currentMatchId, setCurrentMatchId] = useState(null);
   const [isMatchEntry, setIsMatchEntry] = useState(false);
   const [sortedPlayers, setSortedPlayers] = useState(players);
+  const [matchToEdit, setMatchToEdit] = useState(null);
+
+  const matchEntryRef = useRef(null);
 
   useEffect(() => {
-    setSortedPlayers(players); // Ensure chart updates on initial load or player updates
+    setSortedPlayers(players);
   }, [players]);
 
-  // Load data from localStorage
   useEffect(() => {
-    const storedPlayers = JSON.parse(localStorage.getItem("players")) || [];
-    const storedMatches = JSON.parse(localStorage.getItem("matches")) || [];
-    setPlayers(storedPlayers);
-    setMatches(storedMatches);
+    const fetchData = async () => {
+      try {
+        const playersRes = await axios.get(`${API_URL}/players`);
+        const matchesRes = await axios.get(`${API_URL}/matches`);
+        setPlayers(playersRes.data);
+        setMatches(matchesRes.data);
+      } catch (error) {
+        console.error("⚠️ Error fetching data:", error.response?.data || error.message);
+      }
+    };
+    fetchData();
   }, []);
 
-  // Save data to localStorage
-  useEffect(() => {
-    localStorage.setItem("players", JSON.stringify(players));
-    localStorage.setItem("matches", JSON.stringify(matches));
-  }, [players, matches]);
+  const startMatchEntry = async () => {
+    try {
+      const response = await axios.post(`${API_URL}/matches`, { players: [] });
+      setMatches((prev) => [...prev, response.data]);
+      setCurrentMatchId(response.data._id);
+      setIsMatchEntry(true);
 
-  const startMatchEntry = () => {
-    const newMatchId = (matches.length > 0 ? Math.max(...matches.map(m => m.id)) : 0) + 1;
-    setMatches(prev => [...prev, { id: newMatchId, players: [] }]);
-    setCurrentMatchId(newMatchId);
-    setIsMatchEntry(true);
+      setTimeout(() => {
+        matchEntryRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 200);
+      
+    } catch (error) {
+      console.error("⚠️ Error creating match:", error.response?.data || error.message);
+    }
   };
 
-  const handlePlayerParticipation = (name, result) => {
+  const handlePlayerParticipation = async (name, result) => {
     if (!currentMatchId) return;
 
-    // Update player stats
-    setPlayers(prevPlayers => {
-      const existingPlayer = prevPlayers.find(p => p.name === name);
+    try {
+      const currentMatch = matches.find((match) => match._id === currentMatchId);
+      if (!currentMatch) return;
 
-      if (existingPlayer) {
-        return prevPlayers.map(player => {
-          if (player.name === name) {
-            const newWins = player.wins + (result === "wins" ? 1 : 0);
-            const newLosses = player.losses + (result === "losses" ? 1 : 0);
-            const newDraws = player.draws + (result === "draws" ? 1 : 0);
-            const newParticipation = newWins + newLosses + newDraws;
-
-            return {
-              ...player,
-              wins: newWins,
-              losses: newLosses,
-              draws: newDraws,
-              participation: newParticipation,
-              winRate: Math.round((newWins / newParticipation) * 100)
-            };
-          }
-          return player;
-        });
+      const isPlayerAlreadyInMatch = currentMatch.players.some((player) => player.name === name);
+      if (isPlayerAlreadyInMatch) {
+        alert(`${name} is already added to this match!`);
+        return;
       }
 
-      // Add new player
-      return [...prevPlayers, {
-        name,
-        wins: result === "wins" ? 1 : 0,
-        losses: result === "losses" ? 1 : 0,
-        draws: result === "draws" ? 1 : 0,
-        participation: 1,
-        winRate: result === "wins" ? 100 : 0
-      }];
-    });
+      const updatedMatchPlayers = [...currentMatch.players, { name, result }];
+      setMatches((prevMatches) =>
+        prevMatches.map((match) =>
+          match._id === currentMatchId ? { ...match, players: updatedMatchPlayers } : match
+        )
+      );
 
-    // Add player to current match
-    setMatches(prevMatches =>
-      prevMatches.map(match => {
-        if (match.id === currentMatchId) {
-          return {
-            ...match,
-            players: [...match.players, { name, result }]
-          };
-        }
-        return match;
-      })
-    );
+      await axios.put(`${API_URL}/matches/${currentMatchId}`, { players: updatedMatchPlayers });
+
+      const response = await axios.post(`${API_URL}/players`, { name, result });
+      setPlayers((prevPlayers) =>
+        prevPlayers.some((p) => p.name === name)
+          ? prevPlayers.map((p) => (p.name === name ? response.data : p))
+          : [...prevPlayers, response.data]
+      );
+    } catch (error) {
+      console.error("⚠️ Error updating player:", error);
+    }
   };
 
   const finishMatchEntry = () => {
     setCurrentMatchId(null);
     setIsMatchEntry(false);
+    setMatchToEdit(null);
   };
 
-  const deleteMatch = (matchId) => {
-    const matchToDelete = matches.find(match => match.id === matchId);
-    if (!matchToDelete) return;
+  const deleteMatch = async (matchId) => {
+    try {
+      await axios.delete(`${API_URL}/matches/${matchId}`);
+      const updatedMatches = matches.filter((match) => match._id !== matchId);
+      setMatches(updatedMatches);
 
-    // Update all players' stats at once
-    setPlayers(prevPlayers => {
-      const updatedPlayers = prevPlayers.map(player => {
-        // Find all occurrences of this player in the match
-        const playerInMatch = matchToDelete.players.find(p => p.name === player.name);
-        if (!playerInMatch) return player;
+      if (updatedMatches.length === 0) {
+        setPlayers([]);
+      } else {
+        const updatedPlayersRes = await axios.get(`${API_URL}/players`);
+        setPlayers(updatedPlayersRes.data);
+      }
 
-        const newWins = player.wins - (playerInMatch.result === "wins" ? 1 : 0);
-        const newLosses = player.losses - (playerInMatch.result === "losses" ? 1 : 0);
-        const newDraws = player.draws - (playerInMatch.result === "draws" ? 1 : 0);
-        const newParticipation = newWins + newLosses + newDraws;
+      console.log("✅ Match deleted and player stats updated.");
+    } catch (error) {
+      console.error("⚠️ Error deleting match:", error.response?.data || error.message);
+    }
+  };
 
-        // Remove player if no matches left
-        if (newParticipation === 0) return null;
+  const editMatch = (matchId) => {
+    const match = matches.find((m) => m._id === matchId);
+    if (!match) return;
 
-        return {
-          ...player,
-          wins: newWins,
-          losses: newLosses,
-          draws: newDraws,
-          participation: newParticipation,
-          winRate: Math.round((newWins / newParticipation) * 100)
-        };
-      });
+    setMatchToEdit(match);
+    setCurrentMatchId(match._id);
+    setIsMatchEntry(true);
 
-      return updatedPlayers.filter(Boolean); // Remove null entries
-    });
-
-    // Remove the match
-    setMatches(prevMatches => prevMatches.filter(match => match.id !== matchId));
+    setTimeout(() => {
+      matchEntryRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 200);
   };
 
   return (
@@ -154,19 +146,22 @@ const App = () => {
       </div>
 
       {isMatchEntry && (
-        <MatchEntry
-          finishMatchEntry={finishMatchEntry}
-          handlePlayerParticipation={handlePlayerParticipation}
-          existingPlayers={players.map(player => player.name)}
-        />
+        <div ref={matchEntryRef}>
+          <MatchEntry
+            finishMatchEntry={finishMatchEntry}
+            handlePlayerParticipation={handlePlayerParticipation}
+            existingPlayers={players.map((player) => player.name)}
+            matchToEdit={matchToEdit}
+          />
+        </div>
       )}
 
       <PlayerTable players={players} onSortChange={setSortedPlayers} />
-      <PlayerChart players={sortedPlayers} totalMatches={matches.length}/>
+      <PlayerChart players={sortedPlayers} totalMatches={matches.length} />
       <div style={{ textAlign: "center" }}>
         <h3>Total Matches: {matches.length}</h3>
       </div>
-      <MatchHistory matches={matches} deleteMatch={deleteMatch} />
+      <MatchHistory matches={matches} deleteMatch={deleteMatch} editMatch={editMatch} />
       <TeamBalancer players={players} />
     </div>
   );

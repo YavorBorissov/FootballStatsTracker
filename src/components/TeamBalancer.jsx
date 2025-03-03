@@ -7,7 +7,6 @@ const TeamBalancer = ({ players }) => {
   const [suggestions, setSuggestions] = useState([]);
   const containerRef = useRef(null);
 
-  // Load data from localStorage on component mount
   useEffect(() => {
     const savedPlayers = JSON.parse(localStorage.getItem("inputPlayers")) || [];
     const savedTeams = JSON.parse(localStorage.getItem("teams")) || [];
@@ -15,7 +14,6 @@ const TeamBalancer = ({ players }) => {
     setTeams(savedTeams);
   }, []);
 
-  // Save players and teams to localStorage when updated
   useEffect(() => {
     localStorage.setItem("inputPlayers", JSON.stringify(inputPlayers));
     localStorage.setItem("teams", JSON.stringify(teams));
@@ -56,7 +54,7 @@ const TeamBalancer = ({ players }) => {
     const existingPlayer = players.find((p) => p.name === name);
     const newPlayer = {
       name,
-      winRate: existingPlayer ? existingPlayer.winRate : 50, // Default win rate for new players
+      winRate: existingPlayer ? existingPlayer.winRate : 50,
     };
 
     if (!inputPlayers.some((player) => player.name === name)) {
@@ -82,8 +80,6 @@ const TeamBalancer = ({ players }) => {
       const totalWinRate1 = team1.reduce((sum, p) => sum + p.winRate, 0);
       const totalWinRate2 = team2.reduce((sum, p) => sum + p.winRate, 0);
   
-      // Assign player to the team with lower win rate,
-      // but ensure teams stay balanced in size.
       if (
         team1.length <= team2.length &&
         (totalWinRate1 <= totalWinRate2 || team1.length < team2.length)
@@ -93,8 +89,7 @@ const TeamBalancer = ({ players }) => {
         team2.push(player);
       }
     });
-  
-    // Calculate total win rates for each team
+
     const newTeams = [
       {
         players: team1,
@@ -112,7 +107,7 @@ const TeamBalancer = ({ players }) => {
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (containerRef.current && !containerRef.current.contains(event.target)) {
-        setSuggestions([]); // Hide suggestions when clicking outside
+        setSuggestions([]);
       }
     };
 
