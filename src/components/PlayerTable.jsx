@@ -22,7 +22,7 @@ const PlayerTable = ({ players, onSortChange }) => {
 
   const handleSort = (key) => {
     setSortConfig((prevConfig) => {
-      const newDirection =
+      const direction =
         prevConfig.key !== key
           ? defaultSortOrder[key]
           : prevConfig.direction === defaultSortOrder[key]
@@ -31,33 +31,28 @@ const PlayerTable = ({ players, onSortChange }) => {
             : "asc"
           : null;
 
-      if (!newDirection) {
-        setSortedPlayers(players);
-        onSortChange(players);
-        return { key: null, direction: null };
-      }
-
-      const sorted = [...players].sort((a, b) => {
-        const aValue = a[key] ?? 0;
-        const bValue = b[key] ?? 0;
-
-        if (typeof aValue === "number" && typeof bValue === "number") {
-          return newDirection === "asc" ? aValue - bValue : bValue - aValue;
-        }
-
-        if (typeof aValue === "string" && typeof bValue === "string") {
-          return newDirection === "asc"
-            ? aValue.localeCompare(bValue)
-            : bValue.localeCompare(aValue);
-        }
-
-        return 0;
-      });
+      const sorted = direction
+        ? [...players].sort((a, b) => {
+            const aVal = a[key] ?? 0;
+            const bVal = b[key] ?? 0;
+            return direction === "asc"
+              ? aVal > bVal
+                ? 1
+                : aVal < bVal
+                ? -1
+                : 0
+              : aVal > bVal
+              ? -1
+              : aVal < bVal
+              ? 1
+              : 0;
+          })
+        : players;
 
       setSortedPlayers(sorted);
       onSortChange(sorted);
 
-      return { key, direction: newDirection };
+      return direction ? { key, direction } : { key: null, direction: null };
     });
   };
 
