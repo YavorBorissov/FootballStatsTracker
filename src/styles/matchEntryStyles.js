@@ -1,0 +1,113 @@
+const matchEntryStyles = {
+    container: {
+        maxWidth: "500px",
+        margin: "auto",
+        border: "1px solid #ccc",
+        padding: "20px",
+        borderRadius: "10px",
+        backgroundColor: "#f9f9f9",
+    },
+    heading: {
+        textAlign: "center",
+        marginBottom: "20px",
+    },
+    inputContainer: {
+        marginBottom: "15px",
+        position: "relative",
+    },
+    label: {
+        display: "block",
+        marginBottom: "5px",
+    },
+    input: {
+        width: "100%",
+        padding: "10px",
+        borderRadius: "5px",
+        border: "1px solid #ccc",
+        fontSize: "16px",
+        boxSizing: "border-box",
+        display: "block",
+    },
+    suggestions: {
+        position: "absolute",
+        zIndex: 1,
+        backgroundColor: "white",
+        border: "1px solid #ccc",
+        listStyle: "none",
+        margin: 0,
+        padding: "5px 0",
+        width: "100%",
+        borderRadius: "5px",
+    },
+    suggestionItem: {
+        padding: "5px 10px",
+        cursor: "pointer",
+    },
+    button: {
+        width: "100%",
+        padding: "10px",
+        backgroundColor: "#007BFF",
+        color: "white",
+        border: "none",
+        borderRadius: "5px",
+        cursor: "pointer",
+    },
+    playersContainer: {
+        display: "flex",
+        flexWrap: "wrap",
+        gap: "10px",
+        justifyContent: "flex-start",
+        alignItems: "center",
+        marginTop: "20px",
+        padding: "10px",
+        borderRadius: "5px",
+        border: "1px solid #ccc",
+        minHeight: "40px", // Ensures a visible area even when empty
+    },
+    emptyState: {
+        textAlign: "center",
+        width: "100%",
+        color: "#888",
+        fontSize: "14px",
+        fontStyle: "italic",
+    },
+    playerItem: {
+        padding: "5px 10px",
+        borderRadius: "5px",
+        border: "1px solid #ccc",
+        display: "flex",
+        alignItems: "center",
+        gap: "5px",
+    },
+    winnerTag: {
+        color: "green",
+        fontWeight: "bold",
+    },
+    loserTag: {
+        color: "red",
+        fontWeight: "bold",
+    },
+    drawTag: {
+        color: "blue",
+        fontWeight: "bold",
+    },
+    removeButton: {
+        backgroundColor: "transparent",
+        border: "none",
+        color: "red",
+        cursor: "pointer",
+        fontSize: "14px",
+    },
+    finishButton: {
+        marginTop: "20px",
+        width: "100%",
+        padding: "10px",
+        backgroundColor: "#FF6347",
+        color: "white",
+        border: "none",
+        borderRadius: "5px",
+        cursor: "pointer",
+    },
+};
+
+export default matchEntryStyles;

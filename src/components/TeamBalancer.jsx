@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import teamBalancerStyles from "../styles/teamBalancerStyles";
 
 const TeamBalancer = ({ players }) => {
   const [inputPlayers, setInputPlayers] = useState([]);
@@ -71,15 +72,17 @@ const TeamBalancer = ({ players }) => {
   };
 
   const calculateTeams = () => {
-    const sortedPlayers = [...inputPlayers].sort((a, b) => b.winRate - a.winRate);
-  
+    const sortedPlayers = [...inputPlayers].sort(
+      (a, b) => b.winRate - a.winRate
+    );
+
     const team1 = [];
     const team2 = [];
-  
+
     sortedPlayers.forEach((player) => {
       const totalWinRate1 = team1.reduce((sum, p) => sum + p.winRate, 0);
       const totalWinRate2 = team2.reduce((sum, p) => sum + p.winRate, 0);
-  
+
       if (
         team1.length <= team2.length &&
         (totalWinRate1 <= totalWinRate2 || team1.length < team2.length)
@@ -100,13 +103,16 @@ const TeamBalancer = ({ players }) => {
         totalWinRate: team2.reduce((sum, player) => sum + player.winRate, 0),
       },
     ];
-  
+
     setTeams(newTeams);
-  };  
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (containerRef.current && !containerRef.current.contains(event.target)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target)
+      ) {
         setSuggestions([]);
       }
     };
@@ -118,57 +124,27 @@ const TeamBalancer = ({ players }) => {
   }, []);
 
   return (
-    <div
-      ref={containerRef}
-      style={{
-        maxWidth: "600px",
-        margin: "auto",
-        marginTop: "50px",
-        padding: "40px 20px",
-        border: "1px solid #ccc",
-        borderRadius: "10px",
-        backgroundColor: "#f9f9f9",
-      }}
-    >
-      <h2 style={{ textAlign: "center", marginBottom: "30px" }}>Team Balancer</h2>
-      <div style={{ marginBottom: "30px", position: "relative" }}>
+    <div ref={containerRef} style={teamBalancerStyles.container}>
+      <h2 style={teamBalancerStyles.title}>Team Balancer</h2>
+      <div style={teamBalancerStyles.inputContainer}>
         <input
           type="text"
           value={name}
           onChange={handleNameChange}
           onKeyDown={handleKeyDown}
           placeholder="Enter player name"
-          style={{
-            width: "100%",
-            padding: "10px",
-            boxSizing: "border-box",
-            borderRadius: "5px",
-            border: "1px solid #ccc",
-          }}
+          style={teamBalancerStyles.input}
         />
         {suggestions.length > 0 && (
-          <ul
-            style={{
-              position: "absolute",
-              zIndex: 1,
-              backgroundColor: "white",
-              border: "1px solid #ccc",
-              listStyle: "none",
-              margin: 0,
-              padding: "0px 0",
-              width: "100%",
-              borderRadius: "5px",
-            }}
-          >
+          <ul style={teamBalancerStyles.suggestionsList}>
             {suggestions.map((suggestion, index) => (
               <li
                 key={index}
                 onClick={() => handleNameSelect(suggestion)}
-                style={{
-                  padding: "10px",
-                  cursor: "pointer",
-                }}
-                onMouseOver={(e) => (e.target.style.backgroundColor = "#f0f0f0")}
+                style={teamBalancerStyles.suggestionItem}
+                onMouseOver={(e) =>
+                  (e.target.style.backgroundColor = "#f0f0f0")
+                }
                 onMouseOut={(e) => (e.target.style.backgroundColor = "white")}
               >
                 {suggestion}
@@ -177,27 +153,15 @@ const TeamBalancer = ({ players }) => {
           </ul>
         )}
       </div>
-      <button
-        onClick={handleAddPlayer}
-        style={{
-          width: "100%",
-          padding: "10px",
-          backgroundColor: "#007BFF",
-          color: "white",
-          border: "none",
-          borderRadius: "5px",
-          cursor: "pointer",
-          marginBottom: "20px",
-        }}
-      >
+      <button onClick={handleAddPlayer} style={teamBalancerStyles.addButton}>
         Add Player
       </button>
       {inputPlayers.length > 0 && (
-        <div style={{ marginBottom: "20px" }}>
+        <div style={teamBalancerStyles.addedPlayersContainer}>
           <h4>Added Players:</h4>
           <ul>
             {inputPlayers.map((player, index) => (
-              <li key={index} style={{ marginBottom: "5px" }}>
+              <li key={index} style={teamBalancerStyles.playerItem}>
                 {player.name} - Win Rate: {player.winRate}%
               </li>
             ))}
@@ -206,52 +170,27 @@ const TeamBalancer = ({ players }) => {
       )}
       <button
         onClick={calculateTeams}
-        style={{
-          width: "100%",
-          padding: "10px",
-          backgroundColor: "#28a745",
-          color: "white",
-          border: "none",
-          borderRadius: "5px",
-          cursor: "pointer",
-          marginBottom: "20px",
-        }}
+        style={teamBalancerStyles.teamButton("#28a745")}
       >
         Calculate Teams
       </button>
       <button
         onClick={clearPlayers}
-        style={{
-          width: "100%",
-          padding: "10px",
-          backgroundColor: "#dc3545",
-          color: "white",
-          border: "none",
-          borderRadius: "5px",
-          cursor: "pointer",
-        }}
+        style={teamBalancerStyles.teamButton("#dc3545")}
       >
         Clear Players
       </button>
       {teams.length > 0 && (
-        <div style={{ display: "flex", justifyContent: "space-between", marginTop: "20px" }}>
+        <div style={teamBalancerStyles.teamsContainer}>
           {teams.map((team, index) => (
-            <div
-              key={index}
-              style={{
-                width: "48%",
-                padding: "10px",
-                border: "1px solid #ccc",
-                borderRadius: "5px",
-                backgroundColor: "#fff",
-              }}
-            >
-              <h4 style={{ textAlign: "center", marginBottom: "10px" }}>
-                Team {index + 1} (Total Win Rate: {team.totalWinRate.toFixed(2)}%)
+            <div key={index} style={teamBalancerStyles.teamBox}>
+              <h4 style={teamBalancerStyles.teamTitle}>
+                Team {index + 1} (Total Win Rate: {team.totalWinRate.toFixed(2)}
+                %)
               </h4>
               <ul>
                 {team.players.map((player, idx) => (
-                  <li key={idx} style={{ marginBottom: "5px" }}>
+                  <li key={idx} style={teamBalancerStyles.playerItem}>
                     {player.name} - Win Rate: {player.winRate}%
                   </li>
                 ))}

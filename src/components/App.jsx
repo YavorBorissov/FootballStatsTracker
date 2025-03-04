@@ -5,6 +5,8 @@ import MatchEntry from "./MatchEntry";
 import PlayerChart from "./PlayerChart";
 import MatchHistory from "./MatchHistory";
 import TeamBalancer from "./TeamBalancer";
+import Divider from "./Divider";
+import appStyles from "../styles/appStyles";
 
 const API_URL = "http://localhost:5000";
 
@@ -30,7 +32,10 @@ const App = () => {
         setPlayers(playersRes.data);
         setMatches(matchesRes.data);
       } catch (error) {
-        console.error("⚠️ Error fetching data:", error.response?.data || error.message);
+        console.error(
+          "⚠️ Error fetching data:",
+          error.response?.data || error.message
+        );
       }
     };
     fetchData();
@@ -44,11 +49,16 @@ const App = () => {
       setIsMatchEntry(true);
 
       setTimeout(() => {
-        matchEntryRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        matchEntryRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
       }, 200);
-      
     } catch (error) {
-      console.error("⚠️ Error creating match:", error.response?.data || error.message);
+      console.error(
+        "⚠️ Error creating match:",
+        error.response?.data || error.message
+      );
     }
   };
 
@@ -56,10 +66,14 @@ const App = () => {
     if (!currentMatchId) return;
 
     try {
-      const currentMatch = matches.find((match) => match._id === currentMatchId);
+      const currentMatch = matches.find(
+        (match) => match._id === currentMatchId
+      );
       if (!currentMatch) return;
 
-      const isPlayerAlreadyInMatch = currentMatch.players.some((player) => player.name === name);
+      const isPlayerAlreadyInMatch = currentMatch.players.some(
+        (player) => player.name === name
+      );
       if (isPlayerAlreadyInMatch) {
         alert(`${name} is already added to this match!`);
         return;
@@ -68,11 +82,15 @@ const App = () => {
       const updatedMatchPlayers = [...currentMatch.players, { name, result }];
       setMatches((prevMatches) =>
         prevMatches.map((match) =>
-          match._id === currentMatchId ? { ...match, players: updatedMatchPlayers } : match
+          match._id === currentMatchId
+            ? { ...match, players: updatedMatchPlayers }
+            : match
         )
       );
 
-      await axios.put(`${API_URL}/matches/${currentMatchId}`, { players: updatedMatchPlayers });
+      await axios.put(`${API_URL}/matches/${currentMatchId}`, {
+        players: updatedMatchPlayers,
+      });
 
       const response = await axios.post(`${API_URL}/players`, { name, result });
       setPlayers((prevPlayers) =>
@@ -106,7 +124,10 @@ const App = () => {
 
       console.log("✅ Match deleted and player stats updated.");
     } catch (error) {
-      console.error("⚠️ Error deleting match:", error.response?.data || error.message);
+      console.error(
+        "⚠️ Error deleting match:",
+        error.response?.data || error.message
+      );
     }
   };
 
@@ -119,26 +140,24 @@ const App = () => {
     setIsMatchEntry(true);
 
     setTimeout(() => {
-      matchEntryRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      matchEntryRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
     }, 200);
   };
 
   return (
-    <div style={{ fontFamily: "Arial, sans-serif", padding: "20px" }}>
-      <h1 style={{ textAlign: "center" }}>Football Stats Tracker</h1>
+    <div style={appStyles.container}>
+      <h1 style={appStyles.heading}>Football Stats Tracker</h1>
 
-      <div style={{ textAlign: "center", marginBottom: "20px" }}>
+      <div style={appStyles.buttonContainer}>
         <button
           onClick={startMatchEntry}
           disabled={isMatchEntry}
           style={{
-            padding: "10px 20px",
-            backgroundColor: isMatchEntry ? "#cccccc" : "#4CAF50",
-            color: "white",
-            border: "none",
-            borderRadius: "5px",
-            cursor: isMatchEntry ? "default" : "pointer",
-            fontSize: "16px",
+            ...appStyles.button,
+            ...(isMatchEntry ? appStyles.buttonDisabled : {}),
           }}
         >
           Add New Match
@@ -156,12 +175,25 @@ const App = () => {
         </div>
       )}
 
+      <Divider />
       <PlayerTable players={players} onSortChange={setSortedPlayers} />
+
+      <Divider />
       <PlayerChart players={sortedPlayers} totalMatches={matches.length} />
-      <div style={{ textAlign: "center" }}>
-        <h3>Total Matches: {matches.length}</h3>
+
+      <Divider />
+      <div style={appStyles.matchCountContainer}>
+        <h2>Total Matches: {matches.length}</h2>
       </div>
-      <MatchHistory matches={matches} deleteMatch={deleteMatch} editMatch={editMatch} />
+
+      <Divider />
+      <MatchHistory
+        matches={matches}
+        deleteMatch={deleteMatch}
+        editMatch={editMatch}
+      />
+
+      <Divider />
       <TeamBalancer players={players} />
     </div>
   );

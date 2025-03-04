@@ -1,23 +1,26 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
+import playerChartStyles from "../styles/playerChartStyles";
 
 const PlayerChart = ({ players, totalMatches }) => {
   const chartRef = useRef(null);
   const [currentPage, setCurrentPage] = useState(0);
   const playersPerPage = 10;
+  const totalPages = Math.max(1, Math.ceil(players.length / playersPerPage));
 
   useEffect(() => {
-    if (!players || players.length === 0 || totalMatches === 0) {
+    if (!players || totalMatches === 0) {
       return;
     }
 
     const startIdx = currentPage * playersPerPage;
-    const chunk = players.slice(startIdx, startIdx + playersPerPage);
+    let chunk = players.slice(startIdx, startIdx + playersPerPage);
 
-    const fixedXDomain = Array.from(
-      { length: 10 },
-      (_, i) => `Player ${i + 1}`
-    );
+    while (chunk.length < playersPerPage) {
+      chunk.push({ name: "", wins: 0, losses: 0, draws: 0, participation: 0 });
+    }
+
+    const fixedXDomain = Array.from({ length: playersPerPage }, (_, i) => i);
 
     const svg = d3.select(chartRef.current);
     svg.selectAll("*").remove();
@@ -78,7 +81,7 @@ const PlayerChart = ({ players, totalMatches }) => {
         d3
           .axisBottom(x)
           .tickSizeOuter(0)
-          .tickFormat((_, i) => (chunk[i] ? chunk[i].name : ""))
+          .tickFormat((i) => (chunk[i] && chunk[i].name ? chunk[i].name : ""))
       )
       .selectAll("text")
       .attr("transform", "rotate(-45)")
@@ -102,24 +105,25 @@ const PlayerChart = ({ players, totalMatches }) => {
       .selectAll("g")
       .data(chunk)
       .join("g")
-      .attr("transform", (d, i) => `translate(${x(fixedXDomain[i])},0)`)
+      .attr("transform", (d, i) => `translate(${x(i)},0)`)
       .selectAll("rect")
-      .data((d) => keys.map((key) => ({ key, value: d[key] })))
+      .data((d) => keys.map((key) => ({ key, value: d[key] || 0 })))
       .join("rect")
       .attr("x", (d, i) => i * (x.bandwidth() / keys.length))
       .attr("y", (d) => y(d.value))
       .attr("height", (d) => y(0) - y(d.value))
       .attr("width", x.bandwidth() / keys.length)
-      .attr("fill", (d) => color(d.key));
+      .attr("fill", (d) => color(d.key))
+      .attr("opacity", (d, _, arr) => (arr[0].value === 0 ? 0.2 : 1));
 
     svgContainer
       .append("g")
       .selectAll("g")
       .data(chunk)
       .join("g")
-      .attr("transform", (d, i) => `translate(${x(fixedXDomain[i])},0)`)
+      .attr("transform", (d, i) => `translate(${x(i)},0)`)
       .selectAll("text")
-      .data((d) => keys.map((key) => ({ key, value: d[key] })))
+      .data((d) => keys.map((key) => ({ key, value: d[key] || 0 })))
       .join("text")
       .attr(
         "x",
@@ -129,31 +133,41 @@ const PlayerChart = ({ players, totalMatches }) => {
       .attr("y", (d) => y(d.value) - 5)
       .attr("text-anchor", "middle")
       .style("font-size", "10px")
-      .text((d) => d.value);
+      .text((d) => (d.value > 0 ? d.value : ""));
   }, [players, totalMatches, currentPage]);
 
   return (
-    <div>
-      <svg ref={chartRef} style={{ marginBottom: "20px" }} />
-      <div
-        style={{ display: "flex", justifyContent: "center", marginTop: "10px" }}
-      >
-        <button
-          disabled={currentPage === 0}
-          onClick={() => setCurrentPage(currentPage - 1)}
-        >
-          Previous
-        </button>
-        <span style={{ margin: "0 10px" }}>
-          Page {currentPage + 1} of {Math.ceil(players.length / playersPerPage)}
-        </span>
-        <button
-          disabled={(currentPage + 1) * playersPerPage >= players.length}
-          onClick={() => setCurrentPage(currentPage + 1)}
-        >
-          Next
-        </button>
-      </div>
+    <div style={playerChartStyles.container}>
+      {players.length === 0 || totalMatches === 0 ? (
+        <p style={playerChartStyles.emptyState}>
+          No players available to display on chart.
+        </p>
+      ) : (
+        <>
+          <svg ref={chartRef} style={playerChartStyles.chart} />
+          {totalPages > 1 && (
+            <div style={playerChartStyles.paginationContainer}>
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 0))}
+                style={playerChartStyles.paginationButton}
+              >
+                {"<"} Prev
+              </button>
+              <span style={playerChartStyles.paginationText}>
+                Page {currentPage + 1} of {totalPages}
+              </span>
+              <button
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages - 1))
+                }
+                style={playerChartStyles.paginationButton}
+              >
+                Next {">"}
+              </button>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 };

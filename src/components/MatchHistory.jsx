@@ -1,15 +1,28 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import matchHistoryStyles from "../styles/matchHistoryStyles";
 
 const MatchHistory = ({ matches, deleteMatch, editMatch }) => {
   const matchesPerPage = 10;
   const [currentPage, setCurrentPage] = useState(1);
 
-  const sortedMatches = [...matches].sort((a, b) => new Date(b.date) - new Date(a.date));
+  useEffect(() => {
+    const totalPages = Math.ceil(matches.length / matchesPerPage);
+    if (currentPage > totalPages) {
+      setCurrentPage(Math.max(1, totalPages));
+    }
+  }, [currentPage, matches]);
+
+  const sortedMatches = [...matches].sort(
+    (a, b) => new Date(b.date) - new Date(a.date)
+  );
 
   const totalPages = Math.ceil(sortedMatches.length / matchesPerPage);
   const indexOfLastMatch = currentPage * matchesPerPage;
   const indexOfFirstMatch = indexOfLastMatch - matchesPerPage;
-  const currentMatches = sortedMatches.slice(indexOfFirstMatch, indexOfLastMatch);
+  const currentMatches = sortedMatches.slice(
+    indexOfFirstMatch,
+    indexOfLastMatch
+  );
 
   const handleNextPage = () => {
     if (currentPage < totalPages) setCurrentPage((prev) => prev + 1);
@@ -20,73 +33,62 @@ const MatchHistory = ({ matches, deleteMatch, editMatch }) => {
   };
 
   return (
-    <div style={{ marginTop: "50px" }}>
-      <h2 style={{ textAlign: "center" }}>Match History</h2>
+    <div style={matchHistoryStyles.container}>
+      <h3 style={matchHistoryStyles.title}>Match History</h3>
       {matches.length === 0 ? (
-        <p style={{ textAlign: "center" }}>No matches have been added yet.</p>
+        <p style={matchHistoryStyles.emptyState}>
+          No matches have been added yet.
+        </p>
       ) : (
         <>
-          <table style={{ width: "100%", borderCollapse: "collapse", marginTop: "20px" }}>
+          <table style={matchHistoryStyles.table}>
             <thead>
-              <tr style={{ backgroundColor: "#f2f2f2" }}>
-                <th style={{ width: "10%", padding: "10px", border: "1px solid #ddd" }}>Match ID</th>
-                <th style={{ padding: "10px", border: "1px solid #ddd" }}>Winning Players</th>
-                <th style={{ padding: "10px", border: "1px solid #ddd" }}>Losing Players</th>
-                <th style={{ padding: "10px", border: "1px solid #ddd" }}>Actions</th>
+              <tr style={matchHistoryStyles.tableHeader}>
+                <th style={{ ...matchHistoryStyles.tableCell, width: "10%" }}>
+                  Match ID
+                </th>
+                <th style={matchHistoryStyles.tableCell}>Winning Players</th>
+                <th style={matchHistoryStyles.tableCell}>Losing Players</th>
+                <th style={{ ...matchHistoryStyles.tableCell, width: "10%" }}>
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>
               {currentMatches.map((match) => {
                 const matchId = match._id || "N/A";
-                const winningPlayers = match.players
-                  .filter((p) => p.result === "wins")
-                  .map((p) => p.name)
-                  .join(", ") || "None";
-                const losingPlayers = match.players
-                  .filter((p) => p.result === "losses")
-                  .map((p) => p.name)
-                  .join(", ") || "None";
+                const winningPlayers =
+                  match.players
+                    .filter((p) => p.result === "wins")
+                    .map((p) => p.name)
+                    .join(", ") || "None";
+                const losingPlayers =
+                  match.players
+                    .filter((p) => p.result === "losses")
+                    .map((p) => p.name)
+                    .join(", ") || "None";
 
                 return (
                   <tr key={matchId}>
-                    <td
-                      style={{
-                        width: "10%",
-                        padding: "10px",
-                        border: "1px solid #ddd",
-                        whiteSpace: "nowrap",
-                        textAlign: "center",
-                      }}
-                    >
+                    <td style={matchHistoryStyles.tableCellCentered}>
                       {matchId}
                     </td>
-                    <td style={{ padding: "10px", border: "1px solid #ddd" }}>{winningPlayers}</td>
-                    <td style={{ padding: "10px", border: "1px solid #ddd" }}>{losingPlayers}</td>
-                    <td style={{ padding: "10px", border: "1px solid #ddd", textAlign: "center" }}>
+                    <td style={matchHistoryStyles.tableCell}>
+                      {winningPlayers}
+                    </td>
+                    <td style={matchHistoryStyles.tableCell}>
+                      {losingPlayers}
+                    </td>
+                    <td style={matchHistoryStyles.tableCellCentered}>
                       <button
                         onClick={() => deleteMatch(matchId)}
-                        style={{
-                          padding: "5px 10px",
-                          backgroundColor: "#FF6347",
-                          color: "white",
-                          border: "none",
-                          borderRadius: "5px",
-                          cursor: "pointer",
-                          marginRight: "5px",
-                        }}
+                        style={matchHistoryStyles.buttonDelete}
                       >
                         Delete
                       </button>
                       <button
                         onClick={() => editMatch(matchId)}
-                        style={{
-                          padding: "5px 10px",
-                          backgroundColor: "#28a745",
-                          color: "white",
-                          border: "none",
-                          borderRadius: "5px",
-                          cursor: "pointer",
-                        }}
+                        style={matchHistoryStyles.buttonEdit}
                       >
                         Edit
                       </button>
@@ -98,15 +100,21 @@ const MatchHistory = ({ matches, deleteMatch, editMatch }) => {
           </table>
 
           {totalPages > 1 && (
-            <div style={{ textAlign: "center", marginTop: "20px" }}>
-              <button onClick={handlePrevPage} disabled={currentPage === 1} style={paginationButtonStyle}>
-                Previous
+            <div style={matchHistoryStyles.paginationContainer}>
+              <button
+                onClick={handlePrevPage}
+                style={matchHistoryStyles.paginationButton}
+              >
+                {"<"} Prev
               </button>
-              <span style={{ fontSize: "16px", fontWeight: "bold" }}>
+              <span style={matchHistoryStyles.paginationText}>
                 Page {currentPage} of {totalPages}
               </span>
-              <button onClick={handleNextPage} disabled={currentPage === totalPages} style={paginationButtonStyle}>
-                Next
+              <button
+                onClick={handleNextPage}
+                style={matchHistoryStyles.paginationButton}
+              >
+                Next {">"}
               </button>
             </div>
           )}
@@ -114,16 +122,6 @@ const MatchHistory = ({ matches, deleteMatch, editMatch }) => {
       )}
     </div>
   );
-};
-
-const paginationButtonStyle = {
-  padding: "10px 15px",
-  margin: "0 10px",
-  backgroundColor: "#007BFF",
-  color: "white",
-  border: "none",
-  borderRadius: "5px",
-  cursor: "pointer",
 };
 
 export default MatchHistory;

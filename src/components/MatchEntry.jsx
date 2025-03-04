@@ -1,10 +1,18 @@
 import React, { useState, useEffect, useRef } from "react";
+import matchEntryStyles from "../styles/matchEntryStyles";
 
-const MatchEntry = ({ handlePlayerParticipation, finishMatchEntry, existingPlayers, matchToEdit }) => {
+const MatchEntry = ({
+  handlePlayerParticipation,
+  finishMatchEntry,
+  existingPlayers,
+  matchToEdit,
+}) => {
   const [name, setName] = useState("");
   const [result, setResult] = useState("");
   const [suggestions, setSuggestions] = useState([]);
-  const [playersInMatch, setPlayersInMatch] = useState(matchToEdit ? matchToEdit.players : []);
+  const [playersInMatch, setPlayersInMatch] = useState(
+    matchToEdit ? matchToEdit.players : []
+  );
   const containerRef = useRef(null);
 
   useEffect(() => {
@@ -67,7 +75,10 @@ const MatchEntry = ({ handlePlayerParticipation, finishMatchEntry, existingPlaye
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (containerRef.current && !containerRef.current.contains(event.target)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target)
+      ) {
         setSuggestions([]);
       }
     };
@@ -79,60 +90,30 @@ const MatchEntry = ({ handlePlayerParticipation, finishMatchEntry, existingPlaye
   }, []);
 
   return (
-    <div
-      ref={containerRef}
-      style={{
-        maxWidth: "500px",
-        margin: "auto",
-        border: "1px solid #ccc",
-        padding: "20px",
-        borderRadius: "10px",
-        backgroundColor: "#f9f9f9",
-      }}
-    >
-      <h2 style={{ textAlign: "center", marginBottom: "20px" }}>Add Players to Match</h2>
+    <div ref={containerRef} style={matchEntryStyles.container}>
+      <h2 style={matchEntryStyles.heading}>Add Players to Match</h2>
+
       <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: "15px", position: "relative" }}>
-          <label style={{ display: "block", marginBottom: "5px" }}>Player Name:</label>
+        <div style={matchEntryStyles.inputContainer}>
+          <label style={matchEntryStyles.label}>Player Name:</label>
           <input
             type="text"
             value={name}
             onChange={handleNameChange}
             onKeyDown={handleKeyDown}
             placeholder="Enter player's name"
-            style={{
-              width: "100%",
-              padding: "10px",
-              borderRadius: "5px",
-              border: "1px solid #ccc",
-              fontSize: "16px",
-              boxSizing: "border-box",
-              display: "block",
-            }}
+            style={matchEntryStyles.input}
           />
           {suggestions.length > 0 && (
-            <ul
-              style={{
-                position: "absolute",
-                zIndex: 1,
-                backgroundColor: "white",
-                border: "1px solid #ccc",
-                listStyle: "none",
-                margin: 0,
-                padding: "5px 0",
-                width: "100%",
-                borderRadius: "5px",
-              }}
-            >
+            <ul style={matchEntryStyles.suggestions}>
               {suggestions.map((suggestion, index) => (
                 <li
                   key={index}
                   onClick={() => handleNameSelect(suggestion)}
-                  style={{
-                    padding: "5px 10px",
-                    cursor: "pointer",
-                  }}
-                  onMouseOver={(e) => (e.target.style.backgroundColor = "#f0f0f0")}
+                  style={matchEntryStyles.suggestionItem}
+                  onMouseOver={(e) =>
+                    (e.target.style.backgroundColor = "#f0f0f0")
+                  }
                   onMouseOut={(e) => (e.target.style.backgroundColor = "white")}
                 >
                   {suggestion}
@@ -142,107 +123,57 @@ const MatchEntry = ({ handlePlayerParticipation, finishMatchEntry, existingPlaye
           )}
         </div>
 
-        <div style={{ marginBottom: "15px" }}>
-          <label style={{ display: "block", marginBottom: "5px" }}>Result:</label>
+        <div style={matchEntryStyles.inputContainer}>
+          <label style={matchEntryStyles.label}>Result:</label>
           <select
             value={result}
             onChange={(e) => setResult(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "10px",
-              borderRadius: "5px",
-              border: "1px solid #ccc",
-            }}
+            style={matchEntryStyles.input}
           >
             <option value="">Select Result</option>
             <option value="wins">Win</option>
             <option value="losses">Loss</option>
+            <option value="draws">Draw</option>
           </select>
         </div>
 
-        <button
-          type="submit"
-          style={{
-            width: "100%",
-            padding: "10px",
-            backgroundColor: "#007BFF",
-            color: "white",
-            border: "none",
-            borderRadius: "5px",
-            cursor: "pointer",
-          }}
-        >
+        <button type="submit" style={matchEntryStyles.button}>
           Add Player
         </button>
       </form>
 
-      <div style={{ display: "flex", justifyContent: "space-between", marginTop: "20px" }}>
-        <div style={{ width: "45%" }}>
-          <h3 style={{ textAlign: "center", color: "red" }}>Losers</h3>
-          <ul style={{ listStyle: "none", padding: 0 }}>
-            {playersInMatch
-              .filter((p) => p.result === "losses")
-              .map((p, index) => (
-                <li key={index} style={{ textAlign: "center", fontSize: "16px" }}>
-                  {p.name} <span style={{ color: "red", fontWeight: "bold" }}>(L)</span>
-                  <button
-                    onClick={() => handleRemovePlayer(p.name)}
-                    style={{
-                      marginLeft: "10px",
-                      backgroundColor: "transparent",
-                      border: "none",
-                      color: "red",
-                      cursor: "pointer",
-                      fontSize: "14px",
-                    }}
-                  >
-                    ❌
-                  </button>
-                </li>
-              ))}
-          </ul>
-        </div>
-
-        <div style={{ width: "45%" }}>
-          <h3 style={{ textAlign: "center", color: "green" }}>Winners</h3>
-          <ul style={{ listStyle: "none", padding: 0 }}>
-            {playersInMatch
-              .filter((p) => p.result === "wins")
-              .map((p, index) => (
-                <li key={index} style={{ textAlign: "center", fontSize: "16px" }}>
-                  {p.name} <span style={{ color: "green", fontWeight: "bold" }}>(W)</span>
-                  <button
-                    onClick={() => handleRemovePlayer(p.name)}
-                    style={{
-                      marginLeft: "10px",
-                      backgroundColor: "transparent",
-                      border: "none",
-                      color: "red",
-                      cursor: "pointer",
-                      fontSize: "14px",
-                    }}
-                  >
-                    ❌
-                  </button>
-                </li>
-              ))}
-          </ul>
-        </div>
+      {/* Players List */}
+      <div style={matchEntryStyles.playersContainer}>
+        {playersInMatch.length === 0 ? (
+          <p style={matchEntryStyles.emptyState}>No players added yet</p>
+        ) : (
+          playersInMatch.map((p, index) => (
+            <div key={index} style={matchEntryStyles.playerItem}>
+              {p.name}{" "}
+              <span
+                style={
+                  p.result === "wins"
+                    ? matchEntryStyles.winnerTag
+                    : p.result === "losses"
+                    ? matchEntryStyles.loserTag
+                    : matchEntryStyles.drawTag
+                }
+              >
+                ({p.result === "wins" ? "W" : p.result === "losses" ? "L" : "D"}
+                )
+              </span>
+              <button
+                onClick={() => handleRemovePlayer(p.name)}
+                style={matchEntryStyles.removeButton}
+              >
+                ❌
+              </button>
+            </div>
+          ))
+        )}
       </div>
 
-      <button
-        onClick={finishMatchEntry}
-        style={{
-          marginTop: "20px",
-          width: "100%",
-          padding: "10px",
-          backgroundColor: "#FF6347",
-          color: "white",
-          border: "none",
-          borderRadius: "5px",
-          cursor: "pointer",
-        }}
-      >
+      <button onClick={finishMatchEntry} style={matchEntryStyles.finishButton}>
         Finish Match Entry
       </button>
     </div>
