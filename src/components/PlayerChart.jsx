@@ -37,7 +37,7 @@ const PlayerChart = ({ players, totalMatches }) => {
     const color = d3
       .scaleOrdinal()
       .domain(keys)
-      .range(["steelblue", "tomato", "gray", "green"]);
+      .range(["green", "tomato", "gray", "steelblue"]);
 
     const x = d3
       .scaleBand()
