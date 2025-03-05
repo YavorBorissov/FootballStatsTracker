@@ -55,28 +55,26 @@ const PlayerChart = ({ players, totalMatches }) => {
       .attr("viewBox", [0, 0, width, height])
       .classed("chart", true);
 
-    if (currentPage === 0) {
-      const legend = svgContainer
+    const legend = svgContainer
+      .append("g")
+      .attr("transform", `translate(${margin.left},${margin.top - 40})`);
+    keys.forEach((key, i) => {
+      const group = legend
         .append("g")
-        .attr("transform", `translate(${margin.left},${margin.top - 40})`);
-      keys.forEach((key, i) => {
-        const group = legend
-          .append("g")
-          .attr("transform", `translate(${i * 120},0)`);
-        group
-          .append("rect")
-          .attr("width", 10)
-          .attr("height", 10)
-          .attr("fill", color(key));
-        group
-          .append("text")
-          .attr("x", 15)
-          .attr("y", 10)
-          .text(key)
-          .style("font-size", "12px")
-          .attr("fill", "black");
-      });
-    }
+        .attr("transform", `translate(${i * 120},0)`);
+      group
+        .append("rect")
+        .attr("width", 10)
+        .attr("height", 10)
+        .attr("fill", color(key));
+      group
+        .append("text")
+        .attr("x", 15)
+        .attr("y", 10)
+        .text(key)
+        .style("font-size", "12px")
+        .attr("fill", "black");
+    });
 
     svgContainer
       .append("g")
