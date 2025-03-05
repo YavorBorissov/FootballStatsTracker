@@ -13,6 +13,10 @@ const PlayerChart = ({ players, totalMatches }) => {
       return;
     }
 
+    if (currentPage >= totalPages) {
+      setCurrentPage(0);
+    }
+
     const startIdx = currentPage * playersPerPage;
     let chunk = players.slice(startIdx, startIdx + playersPerPage);
 
@@ -114,7 +118,7 @@ const PlayerChart = ({ players, totalMatches }) => {
       .attr("height", (d) => y(0) - y(d.value))
       .attr("width", x.bandwidth() / keys.length)
       .attr("fill", (d) => color(d.key))
-      .attr("opacity", (d, _, arr) => (arr[0].value === 0 ? 0.2 : 1));
+      .attr("opacity", (d) => (d.value === 0 ? 0.2 : 1));
 
     svgContainer
       .append("g")
@@ -134,7 +138,7 @@ const PlayerChart = ({ players, totalMatches }) => {
       .attr("text-anchor", "middle")
       .style("font-size", "10px")
       .text((d) => (d.value > 0 ? d.value : ""));
-  }, [players, totalMatches, currentPage]);
+  }, [players, totalMatches, currentPage, totalPages]);
 
   return (
     <div style={playerChartStyles.container}>

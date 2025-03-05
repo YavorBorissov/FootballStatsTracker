@@ -12,7 +12,6 @@ mongoose
     .then(() => console.log("✅ MongoDB Connected"))
     .catch((err) => console.error("❌ MongoDB Connection Error:", err));
 
-// Define Player Schema
 const playerSchema = new mongoose.Schema({
     name: String,
     wins: { type: Number, default: 0 },
@@ -24,7 +23,6 @@ const playerSchema = new mongoose.Schema({
 
 const Player = mongoose.model("Player", playerSchema);
 
-// Define Match Schema
 const matchSchema = new mongoose.Schema({
     players: [{ name: String, result: String }],
     date: { type: Date, default: Date.now },
@@ -32,13 +30,12 @@ const matchSchema = new mongoose.Schema({
 
 const Match = mongoose.model("Match", matchSchema);
 
-// ✅ API Routes
-
+// routes
 app.get("/", (req, res) => {
     res.send("⚽ Football Tracker API is running!");
 });
 
-// ✅ Get all players
+// get players
 app.get("/players", async (req, res) => {
     try {
         const players = await Player.find();
@@ -49,7 +46,7 @@ app.get("/players", async (req, res) => {
     }
 });
 
-// ✅ Add or Update a player
+// add/update player
 app.post("/players", async (req, res) => {
     try {
         const { name, result } = req.body;
@@ -60,13 +57,11 @@ app.post("/players", async (req, res) => {
         let player = await Player.findOne({ name });
 
         if (player) {
-            // Update stats
             player[result]++;
             player.participation = player.wins + player.losses + player.draws;
             player.winRate = player.participation > 0 ? Math.round((player.wins / player.participation) * 100) : 0;
             await player.save();
         } else {
-            // Create new player
             player = new Player({
                 name,
                 wins: result === "wins" ? 1 : 0,
@@ -85,7 +80,7 @@ app.post("/players", async (req, res) => {
     }
 });
 
-// ✅ Get match history
+// get match history
 app.get("/matches", async (req, res) => {
     try {
         const matches = await Match.find();
@@ -96,7 +91,7 @@ app.get("/matches", async (req, res) => {
     }
 });
 
-// ✅ Add a new match
+// add match
 app.post("/matches", async (req, res) => {
     try {
         const match = new Match({ players: req.body.players });
@@ -108,7 +103,7 @@ app.post("/matches", async (req, res) => {
     }
 });
 
-// ✅ Update a match (Fix for 404 error)
+// update match
 app.put("/matches/:id", async (req, res) => {
     try {
         const matchId = req.params.id;
@@ -131,7 +126,7 @@ app.put("/matches/:id", async (req, res) => {
     }
 });
 
-// ✅ Delete a match
+// delete match
 app.delete("/matches/:id", async (req, res) => {
     try {
         const matchId = req.params.id;
@@ -177,26 +172,5 @@ app.delete("/matches/:id", async (req, res) => {
     }
 });
 
-// ✅ Bulk update players (used for match deletion)
-app.post("/players/update-all", async (req, res) => {
-    try {
-        const { players } = req.body;
-        if (!Array.isArray(players)) {
-            return res.status(400).json({ message: "Invalid player data format" });
-        }
-
-        // Update players in database
-        for (let playerData of players) {
-            await Player.findOneAndUpdate({ name: playerData.name }, playerData, { new: true });
-        }
-
-        res.json({ message: "✅ Players updated successfully" });
-    } catch (error) {
-        console.error("⚠️ Error updating players:", error);
-        res.status(500).json({ message: "Internal Server Error" });
-    }
-});
-
-// ✅ Start the server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
