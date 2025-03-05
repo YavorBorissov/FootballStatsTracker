@@ -142,7 +142,6 @@ const MatchEntry = ({
         </button>
       </form>
 
-      {/* Players List */}
       <div style={matchEntryStyles.playersContainer}>
         {playersInMatch.length === 0 ? (
           <p style={matchEntryStyles.emptyState}>No players added yet</p>
